@@ -1,0 +1,297 @@
+Overview
+This is a Task Management API built with Node.js, Express.js, MongoDB, and GraphQL. The API supports multi-tenancy, role-based access control (RBAC), and various task management functionalities such as task dependencies, real-time collaboration, and activity logs.
+
+1. Project Setup
+1.1 Prerequisites
+Before setting up the project, ensure you have the following installed on your machine:
+
+Node.js (v14.x or later)
+npm or yarn
+MongoDB (v4.x or later)
+Git (for cloning the repository)
+1.2 Cloning the Repository
+Clone the repository from GitHub:
+
+bash
+Copy code
+git clone <repository-url>
+cd <repository-directory>
+1.3 Installing Dependencies
+Navigate to the project directory and install the required dependencies:
+
+bash
+Copy code
+npm install
+# or
+yarn install
+1.4 Environment Configuration
+Create a .env file in the root of the project and add the following configuration variables:
+
+bash
+Copy code
+# MongoDB URI
+MONGO_URI=mongodb://localhost:27017/task_management_db
+
+# JWT Secret Key
+JWT_SECRET=your_secret_key
+
+# Server Port
+PORT=4000
+
+# Nodemailer configuration for email notifications
+EMAIL_HOST=smtp.your-email-provider.com
+EMAIL_PORT=587
+EMAIL_USER=your-email@example.com
+EMAIL_PASS=your-email-password
+
+# Real-time collaboration configuration
+SOCKET_PORT=5000
+1.5 Running the Application
+To start the application, use the following command:
+
+bash
+Copy code
+npm start
+# or
+yarn start
+The server will run on the port specified in the .env file (default is 4000).
+
+2. API Endpoints
+2.1 GraphQL Endpoint
+All GraphQL operations are handled through a single endpoint:
+
+URL: /graphql
+Method: POST
+2.2 Example Queries and Mutations
+2.2.1 Authentication
+Login User
+graphql
+Copy code
+mutation {
+  loginUser(username: "admin", password: "password123") {
+    token
+  }
+}
+Response:
+json
+Copy code
+{
+  "data": {
+    "loginUser": {
+      "token": "jwt_token_here"
+    }
+  }
+}
+2.2.2 Organization
+Create Organization
+
+graphql
+Copy code
+mutation {
+  createOrganization(name: "Acme Corp") {
+    id
+    name
+  }
+}
+Get All Organizations
+
+graphql
+Copy code
+query {
+  getOrganizations {
+    id
+    name
+  }
+}
+2.2.3 User
+Create User
+
+graphql
+Copy code
+mutation {
+  createUser(username: "john_doe", password: "password123", role: "User", organizationId: "organizationId_here") {
+    id
+    username
+    role
+  }
+}
+Get All Users
+
+graphql
+Copy code
+query {
+  getUsers {
+    id
+    username
+    role
+    organization {
+      id
+      name
+    }
+  }
+}
+2.2.4 Task
+Create Task
+
+graphql
+Copy code
+mutation {
+  createTask(title: "Complete Documentation", userId: "userId_here", organizationId: "organizationId_here") {
+    id
+    title
+    status
+  }
+}
+Get Tasks by Status
+
+graphql
+Copy code
+query {
+  getTasksByStatus(status: "Pending", organizationId: "organizationId_here") {
+    id
+    title
+    status
+    user {
+      id
+      username
+    }
+  }
+}
+Update Task Status
+
+graphql
+Copy code
+mutation {
+  updateTaskStatus(taskId: "taskId_here", status: "Completed") {
+    id
+    title
+    status
+  }
+}
+2.2.5 Task Dependencies
+Add Dependency to Task
+
+graphql
+Copy code
+mutation {
+  addDependencyToTask(taskId: "taskId_here", dependsOnTaskId: "dependencyTaskId_here") {
+    id
+    title
+    dependsOn {
+      id
+      title
+    }
+  }
+}
+Get Task with Dependencies
+
+graphql
+Copy code
+query {
+  getTask(id: "taskId_here") {
+    id
+    title
+    dependsOn {
+      id
+      title
+    }
+  }
+}
+2.2.6 Task Collaboration
+Add Comment to Task
+
+graphql
+Copy code
+mutation {
+  addComment(taskId: "taskId_here", userId: "userId_here", content: "This task is almost done!") {
+    id
+    content
+    user {
+      id
+      username
+    }
+  }
+}
+Get Comments for Task
+
+graphql
+Copy code
+query {
+  getTaskComments(taskId: "taskId_here") {
+    id
+    content
+    user {
+      id
+      username
+    }
+  }
+}
+2.2.7 Activity Logs
+Get Activity Logs for Task
+graphql
+Copy code
+query {
+  getTaskActivityLogs(taskId: "taskId_here") {
+    id
+    action
+    user {
+      id
+      username
+    }
+    timestamp
+  }
+}
+3. Real-Time Collaboration Setup
+The project includes a real-time collaboration feature using Socket.IO.
+
+3.1 Running the Socket.IO Server
+To start the Socket.IO server for real-time updates:
+
+bash
+Copy code
+node socketServer.js
+This will start the Socket.IO server on the port specified in the .env file (default is 5000).
+
+3.2 Connecting to Socket.IO
+Clients can connect to the Socket.IO server to receive real-time updates:
+
+javascript
+Copy code
+const socket = io.connect('http://localhost:5000');
+socket.on('taskUpdated', (data) => {
+  console.log('Task Updated:', data);
+});
+4. Testing the API
+4.1 Running Tests
+To run the test suite, use the following command:
+
+bash
+Copy code
+npm test
+# or
+yarn test
+This will run all the unit and integration tests using Jest and Supertest.
+
+5. Deployment
+To deploy the application, follow these steps:
+
+Dockerize the Application
+
+Create a Dockerfile and docker-compose.yml for containerizing the application.
+Build and run the Docker containers using:
+bash
+Copy code
+docker-compose up --build
+Deploy on Cloud Platform
+
+Deploy the Docker container to a cloud platform like AWS, Heroku, or DigitalOcean.
+Ensure the environment variables are correctly set in the cloud environment.
+6. Additional Features
+6.1 Rate Limiting
+Rate limiting is implemented using middleware (rateLimiter.js). This middleware restricts the number of requests a client can make within a specific time frame to prevent abuse.
+
+6.2 Task Notification Emails
+Email notifications are sent to users when tasks are updated. This is handled using the nodemailer package and configured in the utils/email.js file.
+
+7. Conclusion
+This documentation provides a comprehensive guide to setting up, running, and using the Task Management API. Follow the instructions to deploy the application locally or on a production server, and utilize the API endpoints for managing tasks, users, and organizations effectively. For any issues or questions, refer to the provided test cases and documentation.
